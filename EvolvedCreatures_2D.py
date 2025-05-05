@@ -1,20 +1,14 @@
 import numpy as np
 import random
 import pygame
-import copy
 import pickle
 import Box2D.b2 as b2
 
-#--------------------------------------------------
-# Configuration and Seeding
-#--------------------------------------------------
-SEED = 42
-random.seed(SEED)
-np.random.seed(SEED)
 
-#--------------------------------------------------
-# Genome and Mutation Definitions
-#--------------------------------------------------
+SEED = 0  # Placeholder for the seed, to be set in the main function
+
+
+
 class LimbNode:
     def __init__(self, parent=None, attachment=(0,0), max_torque=10.0, speed=1.0, nn_weights=None):
         self.parent = parent
@@ -88,7 +82,7 @@ def mutate_genome(root, mutation_rate=0.3):
 #--------------------------------------------------
 # Simulation Function
 #--------------------------------------------------
-def simulate_creature(genome, visualize=False):
+def simulate_creature(genome, visualize=False, steps=700):
     world = b2.world(gravity=(0, -9.8))
     ground = world.CreateStaticBody(position=(0, 0))
     ground.CreatePolygonFixture(box=(50, 1))
@@ -122,18 +116,67 @@ def simulate_creature(genome, visualize=False):
     build_limb(genome, root_body)
 
     initial_x = root_body.position.x
-    for _ in range(300):
+    #----------------------
+    # Visualization Setup
+    #----------------------
+    if visualize:
+        pygame.init()
+        screen_width, screen_height = 800, 600
+        screen = pygame.display.set_mode((screen_width, screen_height))
+        clock = pygame.time.Clock()
+
+    # Simulation Loop
+    for _ in range(steps):
         for joint, child in joints:
             angle = joint.angle
             speed = joint.speed
             nn_input = np.array([angle, speed])
             hidden = np.tanh(nn_input @ child.nn_input_weights + child.nn_input_bias)
             output = np.tanh(hidden @ child.nn_hidden_weights + child.nn_hidden_bias)
-            joint.motorSpeed = output[0] * child.speed
+            joint.motorSpeed = float(output[0]) * child.speed
             joint.maxMotorTorque = child.max_torque
         world.Step(0.016, 6, 2)
+
+        if visualize:
+            # Calculate camera offset so creature is centered
+            offset_x = root_body.position.x * 30 - screen_width / 2
+            
+            # Clear screen
+            screen.fill((255, 255, 255))
+
+            # Draw background grid lines for speed reference
+            for meter in range(-100, 200):
+                x_px = int(meter * 30 - offset_x)
+                if 0 <= x_px <= screen_width:
+                    pygame.draw.line(screen, (200, 200, 200), (x_px, 0), (x_px, screen_height))
+            # Draw darker lines every 5 meters
+            for meter in range(-100, 200):
+                if meter % 5 == 0:
+                    x_px = int(meter * 30 - offset_x)
+                    if 0 <= x_px <= screen_width:
+                        pygame.draw.line(screen, (150, 150, 150), (x_px, 0), (x_px, screen_height), 2)
+
+            # Draw bodies with camera follow
+            for body in world.bodies:
+                for fixture in body.fixtures:
+                    shape = fixture.shape
+                    vertices = [body.transform * v for v in shape.vertices]
+                    pygame_vertices = [
+                        (
+                            int(v.x * 30 - offset_x),
+                            int(screen_height / 2 - v.y * 30)
+                        )
+                        for v in vertices
+                    ]
+                    pygame.draw.polygon(screen, (0, 0, 255), pygame_vertices)
+
+            # Update display
+            pygame.display.flip()
+            clock.tick(60)
+
     final_x = root_body.position.x
-    return final_x - initial_x
+    distance = final_x - initial_x
+    return distance
 
 #--------------------------------------------------
 # Evolutionary Loop with Stagnation Check
@@ -144,7 +187,7 @@ def create_initial_genome():
     return root
 
 
-def evolve(pop_size=300, generations=100, stagnation_thresh=0.1, stagnation_gens=10):
+def evolve(pop_size=150, generations=100, stagnation_thresh=0.01, stagnation_gens=10):
     population = [create_initial_genome() for _ in range(pop_size)]
     best_history = []
     stagnant_count = 0
@@ -179,10 +222,22 @@ def evolve(pop_size=300, generations=100, stagnation_thresh=0.1, stagnation_gens
 
     # Save best
     best_genome = pairs[0][1]
-    filename = f"best_genome_seed_{SEED}.pkl"
+    filename = f"Creatures/best_genome_seed_{SEED}.pkl"
     with open(filename, "wb") as f:
         pickle.dump(best_genome, f)
     print(f"Saved best genome to {filename}")
+    
+    return best_history[-1]
 
 if __name__ == "__main__":
-    evolve()
+    seed_fitness = {}
+    for seed in range(100):
+        SEED = seed
+        random.seed(SEED)
+        np.random.seed(SEED)
+        fitness = evolve()
+        print(f"Fitness for seed {SEED}: {fitness:.2f}")
+        seed_fitness[SEED] = fitness
+    print("Fitness for each seed:")
+    for seed, fitness in seed_fitness.items():
+        print(f"Seed {seed}: Fitness {fitness:.2f}")
