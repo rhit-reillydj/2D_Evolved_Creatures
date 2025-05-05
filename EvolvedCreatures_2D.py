@@ -44,6 +44,8 @@ class LimbNode:
         new_node.children = [child.copy(parent=new_node) for child in self.children]
         return new_node
 
+
+
 # Mutation functions
 
 def mutate_attachment(node):
@@ -78,6 +80,9 @@ def mutate_genome(root, mutation_rate=0.3):
             current.add_child(LimbNode(parent=current))
         if np.random.rand() < mutation_rate/2 and current.children:
             current.children.pop(np.random.randint(len(current.children)))
+
+
+
 
 #--------------------------------------------------
 # Simulation Function
@@ -230,14 +235,14 @@ def evolve(pop_size=150, generations=100, stagnation_thresh=0.01, stagnation_gen
     return best_history[-1]
 
 if __name__ == "__main__":
-    seed_fitness = {}
-    for seed in range(100):
-        SEED = seed
-        random.seed(SEED)
-        np.random.seed(SEED)
-        fitness = evolve()
-        print(f"Fitness for seed {SEED}: {fitness:.2f}")
-        seed_fitness[SEED] = fitness
-    print("Fitness for each seed:")
-    for seed, fitness in seed_fitness.items():
-        print(f"Seed {seed}: Fitness {fitness:.2f}")
+    # seed_fitness = {}
+    # for seed in range(100):
+    #     SEED = seed
+    #     random.seed(SEED)
+    #     np.random.seed(SEED)
+    fitness = evolve()
+    print(f"Fitness for seed {SEED}: {fitness:.2f}")
+    #     seed_fitness[SEED] = fitness
+    # print("Fitness for each seed:")
+    # for seed, fitness in seed_fitness.items():
+    #     print(f"Seed {seed}: Fitness {fitness:.2f}")
