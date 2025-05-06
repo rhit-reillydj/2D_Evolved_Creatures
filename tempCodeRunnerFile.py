@@ -3,7 +3,7 @@ import pickle
 import numpy as np
 import pygame
 import Box2D.b2 as b2
-from EvolvedCreatures_2D import LimbNode, simulate_creature
+from EvolvedCreatures import LimbNode, simulate_creature
 
 
 if __name__ == "__main__":

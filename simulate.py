@@ -1,6 +1,6 @@
 import sys
 import pickle
-from EvolvedCreatures_2D import LimbNode, simulate_creature
+from EvolvedCreatures import LimbNode, simulate_creature
 
 # 2: front wheel;                           Fitness: ~7
 # 79: back wheel, 85: back wheel standing   Fitness: ~14
