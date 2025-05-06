@@ -7,7 +7,7 @@ from EvolvedCreatures_2D import LimbNode, simulate_creature
 # 42: Roller                                Fitness: ~9
 # 1 + 38: Bouncer;                          Fitness: ~120-150
 
-SEED = 38
+SEED = 85
 
 if __name__ == "__main__":
     filename = f"Creatures/best_genome_seed_{SEED}.pkl"

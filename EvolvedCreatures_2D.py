@@ -4,7 +4,6 @@ import pygame
 import pickle
 import Box2D.b2 as b2
 
-
 SEED = 0  # Placeholder for the seed, to be set in the main function
 
 
@@ -47,7 +46,6 @@ class LimbNode:
 
 
 # Mutation functions
-
 def mutate_attachment(node):
     node.attachment = (
         node.attachment[0] + np.random.normal(0, 0.1),
@@ -84,9 +82,8 @@ def mutate_genome(root, mutation_rate=0.3):
 
 
 
-#--------------------------------------------------
+
 # Simulation Function
-#--------------------------------------------------
 def simulate_creature(genome, visualize=False, steps=700):
     world = b2.world(gravity=(0, -9.8))
     ground = world.CreateStaticBody(position=(0, 0))
@@ -121,9 +118,7 @@ def simulate_creature(genome, visualize=False, steps=700):
     build_limb(genome, root_body)
 
     initial_x = root_body.position.x
-    #----------------------
-    # Visualization Setup
-    #----------------------
+
     if visualize:
         pygame.init()
         screen_width, screen_height = 800, 600
@@ -183,15 +178,12 @@ def simulate_creature(genome, visualize=False, steps=700):
     distance = final_x - initial_x
     return distance
 
-#--------------------------------------------------
-# Evolutionary Loop with Stagnation Check
-#--------------------------------------------------
 def create_initial_genome():
     root = LimbNode()
     root.add_child(LimbNode(parent=root))
     return root
 
-
+# Evolutionary Loop
 def evolve(pop_size=150, generations=100, stagnation_thresh=0.01, stagnation_gens=10):
     population = [create_initial_genome() for _ in range(pop_size)]
     best_history = []
@@ -235,14 +227,14 @@ def evolve(pop_size=150, generations=100, stagnation_thresh=0.01, stagnation_gen
     return best_history[-1]
 
 if __name__ == "__main__":
-    # seed_fitness = {}
-    # for seed in range(100):
-    #     SEED = seed
-    #     random.seed(SEED)
-    #     np.random.seed(SEED)
-    fitness = evolve()
-    print(f"Fitness for seed {SEED}: {fitness:.2f}")
-    #     seed_fitness[SEED] = fitness
-    # print("Fitness for each seed:")
-    # for seed, fitness in seed_fitness.items():
-    #     print(f"Seed {seed}: Fitness {fitness:.2f}")
+    seed_fitness = {}
+    for seed in range(100):
+        SEED = seed
+        random.seed(SEED)
+        np.random.seed(SEED)
+        fitness = evolve()
+        print(f"Fitness for seed {SEED}: {fitness:.2f}")
+        seed_fitness[SEED] = fitness
+    print("Fitness for each seed:")
+    for seed, fitness in seed_fitness.items():
+        print(f"Seed {seed}: Fitness {fitness:.2f}")
